@@ -1,0 +1,259 @@
+{
+  "name": "Competitor_Research_Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.Company }}",
+        "options": {
+          "systemMessage": "You are a expert research agent. You will be given the name of competitor and you will use your tool to do research about them and summarize what they have been up to so that we can stay ahead of them"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        -120,
+        -80
+      ],
+      "id": "5d1bff2b-43ed-43da-928b-78f9dcad5de7",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "mistralai/mistral-small",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        -120,
+        120
+      ],
+      "id": "66369bd2-4361-4e89-889d-c0164a88dea0",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "vf1jagfS0W4RWdM6",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1EyoKmbckrW8nVYIuQxhMCaTCto5zSpvIyDa047Nhgtw",
+          "mode": "list",
+          "cachedResultName": "ResearchAI",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1EyoKmbckrW8nVYIuQxhMCaTCto5zSpvIyDa047Nhgtw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1EyoKmbckrW8nVYIuQxhMCaTCto5zSpvIyDa047Nhgtw/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        -320,
+        -80
+      ],
+      "id": "8249a726-107e-4c1e-9c21-17bc80618249",
+      "name": "Google Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "OTroMa1tgjJRdnPP",
+          "name": "Google Sheets account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -520,
+        -80
+      ],
+      "id": "9ffedffe-f080-4db2-99f8-35ad281e152f",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolSerpApi",
+      "typeVersion": 1,
+      "position": [
+        40,
+        140
+      ],
+      "id": "cfb83d3d-540e-4e08-9505-b8326e3215af",
+      "name": "SerpAPI",
+      "credentials": {
+        "serpApi": {
+          "id": "vL3wXR39P7wOMBqh",
+          "name": "SerpAPI account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1EyoKmbckrW8nVYIuQxhMCaTCto5zSpvIyDa047Nhgtw",
+          "mode": "list",
+          "cachedResultName": "ResearchAI",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1EyoKmbckrW8nVYIuQxhMCaTCto5zSpvIyDa047Nhgtw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1EyoKmbckrW8nVYIuQxhMCaTCto5zSpvIyDa047Nhgtw/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Findings": "={{ $json.output }}",
+            "Company": "={{ $('Google Sheets').item.json.Company }}"
+          },
+          "matchingColumns": [
+            "Company"
+          ],
+          "schema": [
+            {
+              "id": "Company",
+              "displayName": "Company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Findings",
+              "displayName": "Findings",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        240,
+        -80
+      ],
+      "id": "4c61917c-a784-4d93-a04f-08e50fcee2e9",
+      "name": "Google Sheets1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "OTroMa1tgjJRdnPP",
+          "name": "Google Sheets account 4"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SerpAPI": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "c2934dc4-d982-4a6b-9860-2bca9fb96b4e",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7cac9a7a0a63812e41b1e94b1b69e3ffef7529633b7e9b913fb43b82dc581723"
+  },
+  "id": "0N2sk7OA70IZrvKG",
+  "tags": []
+}
