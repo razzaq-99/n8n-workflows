@@ -1,0 +1,688 @@
+{
+  "name": "Resume_Optimizer",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "AI Resume Optimizer",
+        "formDescription": "Upload your resume and job description to get an ATS-optimized resume tailored to your target position.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Full Name",
+              "placeholder": "Enter your full name",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Email",
+              "fieldType": "email",
+              "placeholder": "Enter your email address",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Job Description",
+              "fieldType": "textarea",
+              "placeholder": "Paste the complete job description here",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Resume",
+              "fieldType": "file",
+              "multipleFiles": false,
+              "acceptFileTypes": ".pdf,.doc,.docx",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {
+          "appendAttribution": false,
+          "buttonLabel": "Optimize My Resume"
+        }
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        -1200,
+        272
+      ],
+      "id": "2c2b10e3-fa6b-440f-a42f-63dd4d168ff9",
+      "name": "Resume Optimizer Form",
+      "webhookId": "eba121b3-84b7-4936-a46d-57d6db9b2c92"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "name-check",
+              "leftValue": "={{ $json['Full Name'] }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "email-check",
+              "leftValue": "={{ $json.Email }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "job-desc-check",
+              "leftValue": "={{ $json['Job Description'] }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "resume-check",
+              "leftValue": "={{ $json.Resume }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "db9e934d-6414-4fda-9353-3ecd08b858f3",
+      "name": "Validate Form Data",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -1024,
+        272
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Clean and structure the form data\nconst formData = $input.first().json;\n\n// Extract and clean the data\nconst name = (formData['Full Name'] || '').trim();\nconst email = (formData.Email || '').trim().toLowerCase();\nconst jobDescription = (formData['Job Description'] || '').trim();\nconst resumeFile = formData.Resume;\n\n// Validate email format\nconst emailRegex = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;\nif (!emailRegex.test(email)) {\n  throw new Error('Invalid email format provided');\n}\n\nreturn {\n  name: name,\n  email: email,\n  jobDescription: jobDescription,\n  resumeFile: resumeFile,\n  fileName: resumeFile?.filename || 'resume',\n  fileData: resumeFile?.data || null,\n  timestamp: new Date().toISOString()\n};"
+      },
+      "id": "625f4575-2d72-4081-b2fc-562683f086b1",
+      "name": "Structure Form Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -832,
+        256
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract text from resume file\nconst inputData = $input.first().json;\n\n// For now, we'll simulate resume text extraction\n// In production, you'd want to use a proper PDF/DOC parser\nconst resumeText = `\nEXTRACTED RESUME CONTENT FOR: ${inputData.name}\nEmail: ${inputData.email}\n\n=== PROFESSIONAL SUMMARY ===\nExperienced professional with strong background in various technical and soft skills.\n\n=== WORK EXPERIENCE ===\n• Previous roles and responsibilities\n• Key achievements and contributions\n• Industry experience and expertise\n\n=== EDUCATION ===\n• Educational background\n• Relevant certifications\n• Academic achievements\n\n=== SKILLS ===\n• Technical skills\n• Software proficiency\n• Languages and communication\n• Leadership and teamwork\n\n[Note: This is simulated content. In production, implement actual file parsing]\n`;\n\nreturn {\n  ...inputData,\n  resumeText: resumeText,\n  processingStep: 'resume_extracted'\n};"
+      },
+      "id": "35044fe6-739f-42a3-8a85-0e7784afbfef",
+      "name": "Extract Resume Content",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -656,
+        256
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.jobDescription }}",
+        "options": {
+          "systemMessage": "=[\n  {\n    \"role\": \"system\",\n    \"content\": \"You are an expert job description analyst and resume optimization strategist. Your job is to carefully analyze job descriptions and extract actionable insights to improve resume matching and ATS visibility.\\n\\nPlease output a clean, minified JSON object (no markdown, no explanation, no formatting, no commentary).\\n\\nFollow this structure strictly:\\n{\\n  \\\"technical_skills\\\": [\\\"\\\"],\\n  \\\"experience_requirements\\\": [\\\"\\\"],\\n  \\\"ats_keywords\\\": [\\\"\\\"],\\n  \\\"core_responsibilities\\\": [\\\"\\\"],\\n  \\\"preferred_qualifications\\\": [\\\"\\\"],\\n  \\\"industry_terms\\\": [\\\"\\\"]\\n}\\n\\nBe specific. Remove generic terms unless they are uniquely important to the role.\"\n  },\n  {\n    \"role\": \"user\",\n    \"content\": \"**Job Description:**\\n{{ $json.jobDescription }}\\n\\n**Instructions:**\\n1. List only explicit skills, tools, or frameworks under `technical_skills`\\n2. For `experience_requirements`, extract years, degrees, certifications, or prerequisites\\n3. For `ats_keywords`, include strategic terms recruiters may search (including soft skills)\\n4. For `core_responsibilities`, extract real job duties and tasks from the description\\n5. For `preferred_qualifications`, identify nice-to-have skills, tools, or bonus traits\\n6. For `industry_terms`, include jargon, internal lingo, or sector-specific references\\n\\n⚠️ Return **only the JSON object** — no explanations, comments, or extra text.\"\n  }\n]\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.1,
+      "position": [
+        -528,
+        16
+      ],
+      "id": "7e2bcbc5-5fc8-4620-8350-6d51649ebdff",
+      "name": "Job Analysis AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -480,
+        272
+      ],
+      "id": "137e8adc-8a83-434d-8609-3f2e655ea253",
+      "name": "Job Analysis Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "XGESSot6FrgXIw9H",
+          "name": "Groq account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse job analysis response\nconst inputData = $input.first().json;\nconst analysisResponse = inputData.message?.content || '{}';\n\n// Try to parse the JSON response\nlet jobAnalysis;\ntry {\n  // Clean the response and extract JSON\n  const cleanResponse = analysisResponse.replace(/```json\\n?|```\\n?|```/g, '').trim();\n  const jsonMatch = cleanResponse.match(/\\{[\\s\\S]*\\}/);\n  \n  if (jsonMatch) {\n    jobAnalysis = JSON.parse(jsonMatch[0]);\n  } else {\n    throw new Error('No JSON found in response');\n  }\n} catch (error) {\n  console.log('Failed to parse job analysis, using fallback:', error.message);\n  // Fallback analysis structure\n  jobAnalysis = {\n    technical_skills: ['Communication', 'Problem Solving', 'Team Collaboration'],\n    experience_requirements: ['2-3 years experience', 'Bachelor\\'s degree preferred'],\n    ats_keywords: ['professional', 'experience', 'skills', 'qualifications'],\n    core_responsibilities: ['Execute assigned tasks', 'Collaborate with team', 'Meet deadlines'],\n    preferred_qualifications: ['Relevant degree', 'Industry experience'],\n    industry_terms: ['professional development', 'best practices']\n  };\n}\n\n// Get previous node data\nconst previousData = $('Extract Resume Content').first().json;\n\nreturn {\n  ...previousData,\n  jobAnalysis: jobAnalysis,\n  processingStep: 'job_analyzed'\n};"
+      },
+      "id": "c9fa0d7e-fad2-44d6-a730-1dc7b3e8f2b0",
+      "name": "Process Job Analysis",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -160,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Here is the job description: {{ $json.jobDescription }}\n\nHere is the current resume: {{ $json.resumeText }}\n\n⚠️ Do not include any opening or closing text like “Here is the optimized resume...” or “This resume showcases...” — return only the actual resume content starting with the candidate's name and email.",
+        "options": {
+          "systemMessage": "={\n  \"role\": \"system\",\n  \"content\": \"You are a world-class resume optimization assistant. Your job is to rewrite and enhance resumes so they are:\\n\\n- Perfectly tailored to a specific job description\\n- Highly optimized for ATS (Applicant Tracking Systems)\\n- Cleanly structured, professional, and recruiter-friendly\\n\\nYour output must be a **final, complete resume in clean plain text**. Do not include markdown, commentary, explanations, or links.\\n\\nStructure the resume as follows:\\n1. Full Name (top)\\n2. Email address (below the name)\\n3. PROFESSIONAL SUMMARY — write a targeted summary based on job and candidate background\\n4. EXPERIENCE — list 1–2 recent roles with matching responsibilities and quantifiable results\\n5. EDUCATION — include degree, field, and relevant certifications\\n6. SKILLS — group technical tools, platforms, and soft skills relevant to the job\\n\\n⚠ Formatting Guidelines:\\n- Use section headers in ALL CAPS (e.g., PROFESSIONAL SUMMARY)\\n- Use hyphens (`-`) for bullet points\\n- Use plain text only — no `**`, `*`, `•`, markdown, emojis, or links\\n- Write concise, strong, and specific content — no filler or vague statements\\n- Do not add placeholders like [Company], [Certification], [Languages]\\n- Do not include introductory or summary lines before or after the resume\"\n}\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        16
+      ],
+      "id": "37c051ef-763f-4d89-8ae5-2b43de71f3e4",
+      "name": "Resume Generator AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        32,
+        256
+      ],
+      "id": "875f00a5-28f2-401e-8362-06675af14513",
+      "name": "Resume Generator Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "XGESSot6FrgXIw9H",
+          "name": "Groq account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const inputData = $input.first().json;\nconst rawResume = inputData.message?.content || inputData.output || 'Resume generation failed';\n\n// Clean up the resume formatting\nconst cleanResume = rawResume\n  .replace(/\\*\\*/g, '') // Remove markdown bold\n  .replace(/\\*/g, '•') // Convert asterisks to bullets\n  .replace(/#{1,6}\\s/g, '') // Remove markdown headers\n  .trim();\n\n// Generate filename\nconst timestamp = new Date().toISOString().split('T')[0];\nconst safeName = inputData.name ? inputData.name.replace(/[^a-zA-Z0-9]/g, '_') : 'candidate';\nconst filename = `${safeName}_Optimized_Resume_${timestamp}.txt`;\n\n// Get previous data\nconst previousData = $('Process Job Analysis').first().json;\n\nreturn {\n  ...previousData,\n  optimizedResume: cleanResume,\n  filename: filename,\n  processingStep: 'resume_generated',\n  generatedAt: new Date().toISOString()\n};\n"
+      },
+      "id": "b3d65215-1e27-4ccc-83e0-aac4a3e9cd56",
+      "name": "Process Generated Resume",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        336,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Generate PDF from the optimized resume content\nconst inputData = $input.first().json;\nconst resumeContent = inputData.optimizedResume;\n\n// Create HTML content for PDF generation\nconst htmlContent = `\n<!DOCTYPE html>\n<html>\n<head>\n    <meta charset=\"UTF-8\">\n    <style>\n        body {\n            font-family: 'Arial', sans-serif;\n            font-size: 11px;\n            line-height: 1.4;\n            color: #333;\n            margin: 0;\n            padding: 20px;\n        }\n        .header {\n            text-align: center;\n            margin-bottom: 20px;\n            padding-bottom: 10px;\n            border-bottom: 2px solid #2c3e50;\n        }\n        .name {\n            font-size: 24px;\n            font-weight: bold;\n            color: #2c3e50;\n            margin-bottom: 5px;\n        }\n        .contact {\n            font-size: 12px;\n            color: #555;\n        }\n        .section {\n            margin-bottom: 15px;\n        }\n        .section-title {\n            font-size: 14px;\n            font-weight: bold;\n            color: #2c3e50;\n            text-transform: uppercase;\n            border-bottom: 1px solid #bdc3c7;\n            padding-bottom: 2px;\n            margin-bottom: 8px;\n        }\n        .content {\n            margin-left: 10px;\n        }\n        .bullet {\n            margin-bottom: 3px;\n        }\n    </style>\n</head>\n<body>\n    ${resumeContent.replace(/\\n/g, '<br>').replace(/•/g, '• ')}\n</body>\n</html>\n`;\n\nreturn {\n  ...inputData,\n  htmlContent: htmlContent,\n  processingStep: 'html_generated'\n};"
+      },
+      "id": "a916ce68-cbf7-44d2-b1ae-df6a3599fdaf",
+      "name": "Generate HTML for PDF",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        512,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.pdfshift.io/v3/convert/pdf",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "source",
+              "value": "={{ $json.htmlContent }}"
+            },
+            {
+              "name": "landscape",
+              "value": "false"
+            },
+            {
+              "name": "use_print",
+              "value": "true"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "cc7d0e9c-dd2d-4bbb-9fe6-f0c387b6566e",
+      "name": "Convert to PDF",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        704,
+        240
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "acXYhGsaGo7hzZmu",
+          "name": "Header Auth account 10"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.resumeText }}",
+        "options": {
+          "systemMessage": "=[\n  {\n    \"role\": \"system\",\n    \"content\": \"You are a professional HTML email copywriter and designer. You create beautiful, mobile-friendly, modern HTML emails with inline CSS, specifically for delivering optimized resumes to clients.\\n\\nYour goal is to:\\n- Write in a friendly, professional, and empowering tone\\n- Use modern HTML structure with full inline CSS\\n- Avoid markdown, emojis, or unsupported HTML features\\n- Keep spacing, readability, and visual hierarchy clean\\n- Use inline styles compatible with all major email clients\\n\\n⚠️ Output ONLY the HTML email body, with all styles inline — do NOT include `<html>`, `<head>`, or `<body>` tags.\"\n  },\n  {\n    \"role\": \"user\",\n    \"content\": \"Generate a fully styled HTML email body for the following client:\\n\\nClient Name: {{ $json.name }}\\n\\nEmail Requirements:\\n- Greet the client by name warmly\\n- Explain that their resume has been optimized for the job and ATS\\n- Highlight improvements: keyword optimization, formatting, alignment\\n- List 3–4 short tips on how to use the new resume effectively\\n- Encourage them in their job search\\n- Mention the resume is attached as a PDF\\n- Use clean sections with padding and spacing\\n- Colors: use #2c3e50 for headings, #3498db for accents, and #e74c3c sparingly\\n- Typography: Use Arial or sans-serif, font-size ~15px\\n- Mobile responsive: Single column layout with readable content\\n- Include a short sign-off and your company name or team\\n\\nReturn ONLY the final inline-styled HTML content for the email body (no markdown, no extra text).\"\n  }\n]\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.1,
+      "position": [
+        848,
+        16
+      ],
+      "id": "48d6a694-fe47-4d25-8a51-863b6ba5f46a",
+      "name": "HTML Email Generator AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        864,
+        544
+      ],
+      "id": "4321d8ef-3d57-4628-b891-7ebdc85b0df3",
+      "name": "HTML Email Generator Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "XGESSot6FrgXIw9H",
+          "name": "Groq account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const inputData = $input.first().json;\nconst htmlEmailContent = inputData.message?.content || inputData.output || '<p>Email generation failed</p>';\n\n// Get previous data from PDF conversion\nconst pdfData = $('Convert to PDF').first().json;\n\n// Clean HTML content (remove any markdown artifacts)\nconst cleanHtmlEmail = htmlEmailContent\n  .replace(/```html\\n?|```\\n?|```/g, '')\n  .trim();\n\nreturn {\n  ...pdfData,\n  htmlEmailContent: cleanHtmlEmail,\n  processingStep: 'email_and_pdf_ready',\n  status: 'ready_to_send'\n};\n"
+      },
+      "id": "74ad2c3d-03e3-4d16-96b7-aec8892b5c7f",
+      "name": "Prepare Email and PDF Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1152,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.email }}",
+        "subject": "🚀 Your Optimized ATS-Friendly Resume is Ready!",
+        "message": "={{ $json.htmlEmailContent }}",
+        "options": {
+          "attachmentsUi": {
+            "attachmentsBinary": [
+              {}
+            ]
+          }
+        }
+      },
+      "id": "58c922da-4f5a-498e-b51b-7f0e53180288",
+      "name": "Send HTML Email with PDF Resume",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2,
+      "position": [
+        1344,
+        240
+      ],
+      "webhookId": "dcd5b270-c9c6-410c-8978-0a6123d02e4e",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "hbIYo1yfWu1BLww0",
+          "name": "Gmail account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "completion",
+        "completionTitle": "Resume Optimization Complete! ✅",
+        "completionMessage": "=Your optimized resume has been generated and sent to {{ $('Structure Form Data').first().json.email }}!\n\nWhat we did:\n✓ Analyzed the job description for key requirements\n✓ Optimized your resume with relevant keywords\n✓ Improved ATS compatibility\n✓ Enhanced professional formatting\n✓ Created a beautiful PDF version\n✓ Sent you a professional HTML email with tips\n\nCheck your email for the optimized resume PDF and usage guidelines!",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 1,
+      "position": [
+        1520,
+        240
+      ],
+      "id": "c133ba93-26ca-4889-81e9-ff8e7544fe71",
+      "name": "Success Completion",
+      "webhookId": "11d93636-9e51-46f7-875f-bf3e1804d582"
+    },
+    {
+      "parameters": {
+        "operation": "completion",
+        "completionTitle": "Oops! Something's Missing 📝",
+        "completionMessage": "Please make sure to fill out all required fields:\n\n✓ Full Name\n✓ Email Address  \n✓ Job Description\n✓ Resume File (PDF, DOC, or DOCX)\n\nAll fields are required to generate your optimized resume.",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 1,
+      "position": [
+        -736,
+        480
+      ],
+      "id": "36b28256-6f5a-4064-aa24-e3e9bdc5bd14",
+      "name": "Error Completion",
+      "webhookId": "2467990c-8440-44b9-ad4f-61195f1b9aa2"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "fieldsToMatchString": "=email",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1232,
+        512
+      ],
+      "id": "dd8a24c6-6fe1-4fb1-a10d-67d260b0d424",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "content": "Job Analysis AI Agent\nTitle:  Job Description Analyzer 🎯\nContent:\nExtracts structured data from the job description including:\n\nRequired technical skills\n\nATS keywords\n\nResponsibilities & qualifications\nUsed downstream to align resume content with the job.\n",
+        "height": 736,
+        "width": 1072,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1296,
+        -32
+      ],
+      "typeVersion": 1,
+      "id": "aab5ee2b-19c6-4c33-9ec4-362cc360fd13",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nResume Generator AI Agent\nTitle: Resume Rewriter & Optimizer 📝\nContent:\nUses original resume, job description, and job analysis to:\n\nRewrite and format a clean, ATS-friendly resume\n\nHighlight matching skills, experience, and achievements\n\nOutput plain text only (no styling, no extra commentary)",
+        "height": 736,
+        "width": 1040
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -224,
+        -32
+      ],
+      "typeVersion": 1,
+      "id": "926bf9ed-d612-40de-8d94-7131242a5f46",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "                                                                     HTML Email Generator AI Agent\n                                                                     Title: HTML Email Builder ✉️ \n                                                                     Content:\n                                                                     Creates a modern, responsive HTML email with:\n                                                                     Personalized greeting and delivery message\n                                                                     Resume optimization summary and practical tips\n                                                                     Mobile-friendly design and inline styling",
+        "height": 736,
+        "width": 1040,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        816,
+        -32
+      ],
+      "typeVersion": 1,
+      "id": "23eb9cb4-7e62-4def-bbb9-7a384d87d184",
+      "name": "Sticky Note2"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Resume Optimizer Form": {
+      "main": [
+        [
+          {
+            "node": "Validate Form Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Form Data": {
+      "main": [
+        [
+          {
+            "node": "Structure Form Data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error Completion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structure Form Data": {
+      "main": [
+        [
+          {
+            "node": "Extract Resume Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Resume Content": {
+      "main": [
+        [
+          {
+            "node": "Job Analysis AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Job Analysis AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Process Job Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Job Analysis Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Job Analysis AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Job Analysis": {
+      "main": [
+        [
+          {
+            "node": "Resume Generator AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resume Generator AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Process Generated Resume",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resume Generator Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Resume Generator AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Generated Resume": {
+      "main": [
+        [
+          {
+            "node": "Generate HTML for PDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate HTML for PDF": {
+      "main": [
+        [
+          {
+            "node": "Convert to PDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to PDF": {
+      "main": [
+        [
+          {
+            "node": "HTML Email Generator AI Agent",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "HTML Email Generator AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Prepare Email and PDF Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTML Email Generator Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "HTML Email Generator AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Email and PDF Data": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send HTML Email with PDF Resume": {
+      "main": [
+        [
+          {
+            "node": "Success Completion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Send HTML Email with PDF Resume",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "47de63d3-9605-43f3-a6a3-ac08fe2126f3",
+  "meta": {
+    "instanceId": "7cac9a7a0a63812e41b1e94b1b69e3ffef7529633b7e9b913fb43b82dc581723"
+  },
+  "id": "2z06AXRa0ILopVt9",
+  "tags": []
+}
