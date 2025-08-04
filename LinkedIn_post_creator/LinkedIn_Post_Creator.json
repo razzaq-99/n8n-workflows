@@ -1,0 +1,305 @@
+{
+  "name": "LinkedIn_Post_Creator",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Linkedin-post-generator",
+        "formDescription": "This automation will create content and images for linekdin post ",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Post Title",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Target Audience",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        -512,
+        -80
+      ],
+      "id": "92cc0a73-1e8e-4b5d-9644-8495044ee7f9",
+      "name": "On form submission",
+      "webhookId": "70b5d0c9-715e-4bf2-ba16-77d67a33e7af"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Topic of Research : {{ $json['Post Title'] }}\nTarget Audience :  {{ $json['Target Audience'] }}",
+        "options": {
+          "systemMessage": "## AI Overview\nYou are an AI agent specialized in creating professional, educational, and engaging LinkedIn posts based on any topic provided by the user.\n\n## Objectives\nAlways begin by conducting a real-time search using the Tavily tool to gather the most accurate, up-to-date information on the topic. The post should be written to appeal to the provided target audience.\n\nBased on your research, generate a well-structured LinkedIn post that:\n- Starts with an engaging hook\n- Prioritizes a single key hook\n- Clear and easy to read\n- Educational and insightful\n- Light on emojis (use only when highly relevant and minimal)\n- Includes proper source attribution (e.g. “according to [Source]”)\n- Contains relevant hashtags to improve visibility\n- Ends with a clever call to action (e.g. asking for thoughts, feedback, or shares)\n\n## Output Instructions\n- Your ONLY output should be the final LinkedIn post text.\n- Do not include value explanations, notes, or anything beyond the post itself.\n\n## Example Workflow\n- Receive a topic (e.g. “The ROI of warehouse automation”)\n- Use Tavily to search and gather recent information on case studies\n- Draft a LinkedIn post using that research\n- Format it with source citations, clean structure, optional hashtags, and a call to action\n\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.1,
+      "position": [
+        -352,
+        -80
+      ],
+      "id": "c287af87-d32c-441a-8905-0bda56303c4c",
+      "name": "Research Agent"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Linkedin post : {{ $json.output }}",
+        "options": {
+          "systemMessage": "## Overview\nYou are an AI agent that transforms LinkedIn posts into visual prompt descriptions for generating graphic marketing materials. These visuals are designed to be paired with the post on LinkedIn, helping communicate the message in a visually engaging, brand-aligned way.\n\n## Objective\n- Read and analyze the given LinkedIn post.\n- Identify the main message, insight, or takeaway from the post.\n- Generate a clear and compelling graphic prompt that can be used with a text-to-image AI model.\n- The result should be a marketing-style graphic — not a literal scene or neuro-linguistic photo that :\n1) Visually supports or illustrates the key idea of the post\n2) Looks appropriate for use in a professional LinkedIn feed\n3) Feels polished, modern, and engaging\n\n## Output Instructions\n- Output only the final image prompt. Do not output quotation marks.\n- Do not repeat or rephrase the LinkedIn post.\n- Do not add any explanations or extra content — just the image prompt.\n- Never leave things blank like “Header area reserved for customizable callout text”\n- Prioritize numeric stats when available in the original post\n\n## Style Guidelines\n- Think like a brand designer or marketing creative.\n- Think in visual language (charts, icons, abstract shapes, overlays, modern illustrations, motion-like effects, bold typography elements (described, not rendered), or metaphorical concepts).\n- You can mention layout suggestions (e.g., “split screen design,” “header with bold title and subtle background illustration”)\n- Assume the output will be generated using AI image tools — your prompt should guide those tools effectively.\n\n## Example Prompt Format\nA modern flat-style graphic showing a human brain connected to mechanical gears, representing the fusion of AI and automation.\nMinimalist background, soft gradients, clean sans-serif text placement space at the top."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.1,
+      "position": [
+        -32,
+        -80
+      ],
+      "id": "aa9d21e6-a391-4ecf-96ed-0b7fa26dbcad",
+      "name": "Image Generator Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatMistralCloud",
+      "typeVersion": 1,
+      "position": [
+        -384,
+        128
+      ],
+      "id": "a9f1dee0-52d7-4aa3-9122-4b4d0989e8cd",
+      "name": "Mistral Cloud Chat Model",
+      "credentials": {
+        "mistralCloudApi": {
+          "id": "BVW9PzvonWrmvF4Q",
+          "name": "Mistral Cloud account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "toBinary",
+        "sourceProperty": "data[0].b64_json",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        496,
+        -80
+      ],
+      "id": "2e5d875a-3241-4f13-847c-d2a1356786d7",
+      "name": "Convert to File"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.tavily.com/search",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer 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"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"query\": \"{{ $json['Post Title'] }}\",\n  \"auto_parameters\": false,\n  \"topic\": \"general\",\n  \"search_depth\": \"basic\",\n  \"chunks_per_source\": 3,\n  \"max_results\": 1,\n  \"time_range\": null,\n  \"days\": 7,\n  \"start_date\": \"2025-02-09\",\n  \"end_date\": \"2000-01-28\",\n  \"include_answer\": true,\n  \"include_raw_content\": true,\n  \"include_images\": false,\n  \"include_image_descriptions\": false,\n  \"include_favicon\": false,\n  \"include_domains\": [],\n  \"exclude_domains\": [],\n  \"country\": null\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        -192,
+        128
+      ],
+      "id": "8645854e-fbae-4612-8791-417734726ca5",
+      "name": "Tavily"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.edenai.run/v2/image/generation",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiMzlhMGIyOWMtNzU5NC00ODMyLTkzYTUtOWExZDU0YzFkOGE4IiwidHlwZSI6ImFwaV90b2tlbiJ9.oba9WTW5WB-gQbxwgly3Oi8gtt_gOlTNVUwLdgTZs2M"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "providers",
+              "value": "stabilityai"
+            },
+            {
+              "name": "prompt",
+              "value": "={{ $json.output }}"
+            },
+            {
+              "name": "size",
+              "value": "1024x1024"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        304,
+        -80
+      ],
+      "id": "e39ea7f8-4437-42b8-b087-5f27e1005597",
+      "name": "Image Generator"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatMistralCloud",
+      "typeVersion": 1,
+      "position": [
+        -16,
+        128
+      ],
+      "id": "434d5496-7595-46fb-88cc-7d36db40e020",
+      "name": "Mistral Cloud Chat Model1",
+      "credentials": {
+        "mistralCloudApi": {
+          "id": "BVW9PzvonWrmvF4Q",
+          "name": "Mistral Cloud account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "text": "{{$('Research Agent').item.json.output}}",
+        "shareMediaCategory": "IMAGE",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.linkedIn",
+      "typeVersion": 1,
+      "position": [
+        656,
+        -80
+      ],
+      "id": "bac8b583-9141-4396-8da0-2881acb6e09f",
+      "name": "Create a post"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Research Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Research Agent": {
+      "main": [
+        [
+          {
+            "node": "Image Generator Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mistral Cloud Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Research Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Image Generator Agent": {
+      "main": [
+        [
+          {
+            "node": "Image Generator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tavily": {
+      "ai_tool": [
+        [
+          {
+            "node": "Research Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Image Generator": {
+      "main": [
+        [
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mistral Cloud Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Image Generator Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File": {
+      "main": [
+        [
+          {
+            "node": "Create a post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "f9e83a44-0d03-4deb-ab84-de68eac547a1",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7cac9a7a0a63812e41b1e94b1b69e3ffef7529633b7e9b913fb43b82dc581723"
+  },
+  "id": "b6rjWK4MAEQRcgR4",
+  "tags": []
+}
