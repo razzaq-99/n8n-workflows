@@ -1,0 +1,366 @@
+{
+  "name": "smart_browser_workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -288,
+        -48
+      ],
+      "id": "198c2118-9a4b-43b8-8270-06754ad74217",
+      "name": "When chat message received",
+      "webhookId": "9841ac1e-b3fc-4232-a2ba-c3198986a176"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.chatInput }}",
+        "options": {
+          "systemMessage": "You are an autonomous AI Agent inside a browser automation environment.\n\nUse the available tools actively to complete tasks step by step. Always prefer using tools over giving passive answers.\n\nAvailable tools:\n- Think: Plan or reflect before taking the next action.\n- Create Browser: Open a browser session.\n- Typing Tool: Type text into input fields.\n- Clicking Tool: Click buttons or elements.\n- Query Tool: Extract content from the page.\n- Load Tool: Navigate to a specific URL.\n- Terminate Tool: End the session when done.\n\nGuidelines:\n- Break complex tasks into smaller steps.\n- Use tools logically and explain your reasoning.\n- After each tool, observe the result before the next step.\n- Only use Terminate Tool after successfully completing the task.\n\nDo not guess answers. Use tools to explore, act, and respond like a real user would.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.1,
+      "position": [
+        32,
+        -48
+      ],
+      "id": "b7c12a36-87a5-4693-95a1-b44f8cf3068f",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -256,
+        224
+      ],
+      "id": "f8302211-b7d2-4aaf-93dd-0be013ea36e8",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "5PEOHuW2pSWLuttQ",
+          "mode": "list",
+          "cachedResultName": "create browser"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "profile_name": "abdul123",
+            "url": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('url', `URL of the website that we are visiting`, 'string') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "url",
+              "displayName": "url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "profile_name",
+              "displayName": "profile_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        48,
+        256
+      ],
+      "id": "5111a30b-d27f-461b-ba80-7ede64d604bb",
+      "name": "create browser"
+    },
+    {
+      "parameters": {
+        "resource": "interaction",
+        "operation": "type",
+        "sessionId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Session_ID', `The 'sessionId' returned by the 'Start_Browser' tool`, 'string') }}",
+        "windowId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Window_ID', `The 'windowId' returned by the 'Start_Browser' tool`, 'string') }}",
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Text', ``, 'string') }}",
+        "pressEnterKey": true,
+        "elementDescription": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Element_Description', ``, 'string') }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.airtopTool",
+      "typeVersion": 1,
+      "position": [
+        176,
+        256
+      ],
+      "id": "2d5eb639-1ff4-49ee-90b4-54146ca2b40c",
+      "name": "Typing Tool",
+      "credentials": {
+        "airtopApi": {
+          "id": "cBb0TW0ls2QVRwS1",
+          "name": "Airtop account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "interaction",
+        "sessionId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Session_ID', `The 'sessionId' returned by the 'Start_Browser' tool`, 'string') }}",
+        "windowId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Window_ID', `The 'windowId' returned by the 'Start_Browser' tool`, 'string') }}",
+        "elementDescription": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Element_Description', ``, 'string') }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.airtopTool",
+      "typeVersion": 1,
+      "position": [
+        320,
+        240
+      ],
+      "id": "d253dc9b-1a39-475d-bdb6-670f8e9e6fd2",
+      "name": "Clicking Tool",
+      "credentials": {
+        "airtopApi": {
+          "id": "cBb0TW0ls2QVRwS1",
+          "name": "Airtop account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "extraction",
+        "operation": "query",
+        "sessionId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Session_ID', `The 'sessionId' returned by the 'Start_Browser' tool`, 'string') }}",
+        "windowId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Window_ID', `The 'WindowId' returned by the 'Start_Browser' tool`, 'string') }}",
+        "prompt": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Prompt', ``, 'string') }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.airtopTool",
+      "typeVersion": 1,
+      "position": [
+        464,
+        208
+      ],
+      "id": "1c99e62e-5502-4f33-baec-572d54c338ef",
+      "name": "Query Tool",
+      "credentials": {
+        "airtopApi": {
+          "id": "cBb0TW0ls2QVRwS1",
+          "name": "Airtop account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "window",
+        "operation": "load",
+        "sessionId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Session_ID', `The 'sessionId' returned by the 'Start_Browser' tool`, 'string') }}",
+        "windowId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Window_ID', `The 'windowId' returned by the 'Start_Browser' tool`, 'string') }}",
+        "url": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('URL', ``, 'string') }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.airtopTool",
+      "typeVersion": 1,
+      "position": [
+        592,
+        208
+      ],
+      "id": "c0b753e0-31c8-4998-91b3-8a6c56da533f",
+      "name": "Load Tool",
+      "credentials": {
+        "airtopApi": {
+          "id": "cBb0TW0ls2QVRwS1",
+          "name": "Airtop account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "terminate",
+        "sessionId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Session_ID', `The 'sessionId' returned by the 'Start_Browser' tool`, 'string') }}"
+      },
+      "type": "n8n-nodes-base.airtopTool",
+      "typeVersion": 1,
+      "position": [
+        736,
+        208
+      ],
+      "id": "8657df30-39b5-4dec-8738-4770a549c769",
+      "name": "Terminate Tool",
+      "credentials": {
+        "airtopApi": {
+          "id": "cBb0TW0ls2QVRwS1",
+          "name": "Airtop account 4"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.toolThink",
+      "typeVersion": 1,
+      "position": [
+        -64,
+        240
+      ],
+      "id": "3cd86cbc-a58c-4cd2-a974-be4a17d28435",
+      "name": "Think"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatMistralCloud",
+      "typeVersion": 1,
+      "position": [
+        -400,
+        192
+      ],
+      "id": "e9380335-68c7-4575-850d-0b0b461bf4ed",
+      "name": "Mistral Cloud Chat Model",
+      "credentials": {
+        "mistralCloudApi": {
+          "id": "BVW9PzvonWrmvF4Q",
+          "name": "Mistral Cloud account 2"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "create browser": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Typing Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clicking Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Query Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Terminate Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Think": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mistral Cloud Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "a9f0ecde-25a6-4749-902d-6f3c5a873137",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7cac9a7a0a63812e41b1e94b1b69e3ffef7529633b7e9b913fb43b82dc581723"
+  },
+  "id": "kXeO7SHZjMw1UFMI",
+  "tags": []
+}

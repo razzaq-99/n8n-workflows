@@ -1,0 +1,106 @@
+{
+  "name": "create browser",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "url"
+            },
+            {
+              "name": "profile_name"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -336,
+        -32
+      ],
+      "id": "f5672399-17d1-417b-9454-29e5de4e50f0",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "profileName": "abdul123",
+        "saveProfileOnTermination": true,
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.airtop",
+      "typeVersion": 1,
+      "position": [
+        -128,
+        -32
+      ],
+      "id": "1a7e234f-c82d-40f9-9654-9150163aab83",
+      "name": "Create a session",
+      "credentials": {
+        "airtopApi": {
+          "id": "qrHMrwAUtLdtvQs6",
+          "name": "Airtop account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "window",
+        "url": "={{ $('When Executed by Another Workflow').item.json.url }}",
+        "getLiveView": true,
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.airtop",
+      "typeVersion": 1,
+      "position": [
+        80,
+        -32
+      ],
+      "id": "cf59415b-721e-42ae-8c11-adb87de1f748",
+      "name": "Create a window",
+      "credentials": {
+        "airtopApi": {
+          "id": "qrHMrwAUtLdtvQs6",
+          "name": "Airtop account 3"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Create a session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a session": {
+      "main": [
+        [
+          {
+            "node": "Create a window",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "cc0f13c5-e799-4497-8e34-1fbebedd90fe",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7cac9a7a0a63812e41b1e94b1b69e3ffef7529633b7e9b913fb43b82dc581723"
+  },
+  "id": "5PEOHuW2pSWLuttQ",
+  "tags": []
+}
