@@ -266,7 +266,7 @@
             },
             {
               "name": "Authorization",
-              "value": "Bearer llx-UIDcYcWDibIyqSKT539xy6Ja3AUn5HDLzEbNmwc2GArjYdwP"
+              "value": "Bearer YOUR_LLAMA_CLOUD_API_KEY"
             }
           ]
         },
@@ -383,7 +383,7 @@
             },
             {
               "name": "Authorization",
-              "value": "Bearer llx-UIDcYcWDibIyqSKT539xy6Ja3AUn5HDLzEbNmwc2GArjYdwP"
+              "value": "Bearer YOUR_LLAMA_CLOUD_API_KEY"
             }
           ]
         },
@@ -410,7 +410,7 @@
             },
             {
               "name": "Authorization",
-              "value": "Bearer llx-UIDcYcWDibIyqSKT539xy6Ja3AUn5HDLzEbNmwc2GArjYdwP"
+              "value": "Bearer YOUR_LLAMA_CLOUD_API_KEY"
             }
           ]
         },
