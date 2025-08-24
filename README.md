@@ -23,7 +23,8 @@ A curated collection of production-ready **n8n** automations I use across real p
 8. **multimodal\_ai\_automation** 
 9. **nike\_agent\_Workflow** 
 10. **Clinic Agent** 
-11. **Postgres & Supabase setup for RAG** 
+11. **Postgres & Supabase setup for RAG**
+12. **Multi-Agent Newsletter System**
 
 ---
 
