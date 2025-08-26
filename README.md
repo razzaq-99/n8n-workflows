@@ -25,6 +25,7 @@ A curated collection of production-ready **n8n** automations I use across real p
 10. **Clinic Agent** 
 11. **Postgres & Supabase setup for RAG**
 12. **Multi-Agent Newsletter System**
+13. **Weather Agent/Workflow**
 
 ---
 
