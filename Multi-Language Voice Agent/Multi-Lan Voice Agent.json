@@ -1,0 +1,309 @@
+{
+  "name": "Multi-Lan Voice Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "inbound",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -1088,
+        224
+      ],
+      "id": "c5d3444f-1b05-4d0e-b0a9-2efbebcf664e",
+      "name": "Webhook",
+      "webhookId": "dbbff561-6f5c-4a17-a02e-ebdfa0068887"
+    },
+    {
+      "parameters": {
+        "email": "zubair.trabzada@gmail.com",
+        "additionalFields": {},
+        "options": {}
+      },
+      "type": "n8n-nodes-base.hubspot",
+      "typeVersion": 2.1,
+      "position": [
+        -96,
+        208
+      ],
+      "id": "ac7c816c-7083-4255-8f72-bcba4360cd50",
+      "name": "Create or update a contact",
+      "credentials": {
+        "hubspotApi": {
+          "id": "Ql8u8giXFUGWJyj7",
+          "name": "HubSpot account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1hK_7svMa3gYqVDuoNhO8EsUIIbN2hFZkkQ-wlgObbN0",
+          "mode": "list",
+          "cachedResultName": "Health_CRM",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1hK_7svMa3gYqVDuoNhO8EsUIIbN2hFZkkQ-wlgObbN0/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1hK_7svMa3gYqVDuoNhO8EsUIIbN2hFZkkQ-wlgObbN0/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "First Name": "={{ $json.output.first_name }}",
+            "Last Name": "={{ $json.output.last_name }}",
+            "Phone ": "={{ $json.output.phone }}",
+            "Email": "={{ $json.output.email }}",
+            "Insurance": "={{ $json.output.insurance }}",
+            "Call Summary ": "={{ $json.output.call_summary }}"
+          },
+          "matchingColumns": [
+            "Phone "
+          ],
+          "schema": [
+            {
+              "id": "First Name",
+              "displayName": "First Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Last Name",
+              "displayName": "Last Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Phone ",
+              "displayName": "Phone ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Insurance",
+              "displayName": "Insurance",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Call Summary ",
+              "displayName": "Call Summary ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -304,
+        208
+      ],
+      "id": "d1ab4660-79ce-4074-9764-fbfbd781bf45",
+      "name": "Append or update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "OTroMa1tgjJRdnPP",
+          "name": "Google Sheets account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.body.call.agent_name }}",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        -624,
+        208
+      ],
+      "id": "cda48f87-e1b7-4fbc-9c43-fbd4e03e6524",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        -464,
+        400
+      ],
+      "id": "188563a5-4081-47bb-9e0b-7fc1776fc324",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0356a58c-1de3-4709-8847-01d662de10b5",
+              "leftValue": "={{ $json.body.event }}",
+              "rightValue": "call_analyzed",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -864,
+        224
+      ],
+      "id": "87cd8021-2a9c-49ff-8a32-c86bd3db90c9",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatMistralCloud",
+      "typeVersion": 1,
+      "position": [
+        -624,
+        400
+      ],
+      "id": "897a2807-fb30-43dd-85db-1623c8bb1cc8",
+      "name": "Mistral Cloud Chat Model",
+      "credentials": {
+        "mistralCloudApi": {
+          "id": "BVW9PzvonWrmvF4Q",
+          "name": "Mistral Cloud account 2"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Append or update row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Create or update a contact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Append or update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mistral Cloud Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1a5d6557-565f-40be-bd12-ea694c7b0932",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7cac9a7a0a63812e41b1e94b1b69e3ffef7529633b7e9b913fb43b82dc581723"
+  },
+  "id": "qJQDm8XPd82Ap4Y9",
+  "tags": []
+}
