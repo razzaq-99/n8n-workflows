@@ -27,6 +27,7 @@ A curated collection of production-ready **n8n** automations I use across real p
 12. **Multi-Agent Newsletter System**
 13. **Weather Agent/Workflow**
 14. **Multi-Language Voice Agent**
+15. **Nano Banana Workflow**
 
 ---
 
