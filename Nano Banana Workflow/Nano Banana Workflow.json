@@ -1,0 +1,265 @@
+{
+  "name": "Nano Banana Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "toBinary",
+        "sourceProperty": "base",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        960,
+        96
+      ],
+      "id": "f6d46210-d3a7-41e0-ada1-d2c24719705c",
+      "name": "Convert to File1"
+    },
+    {
+      "parameters": {
+        "path": "pov",
+        "formTitle": "Describe the image you would like to generate",
+        "formDescription": "=Describe the Scence",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "User Input",
+              "placeholder": "You Wake Up During the Black Plague (1351)",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "29ae66da-9d21-4d8b-a8b6-cba5c9e4281f",
+      "name": "n8n Form Trigger",
+      "type": "n8n-nodes-base.formTrigger",
+      "position": [
+        48,
+        96
+      ],
+      "webhookId": "a35eb005-f795-4c85-9d00-0fe9797cb509",
+      "typeVersion": 2.1
+    },
+    {
+      "parameters": {
+        "content": "## Generate Description of the Image",
+        "height": 372,
+        "width": 500,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "45cd4ed3-2fec-49dc-b84f-ef3ea9b7995b",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Create Image with Nano Banana for FREE",
+        "height": 372,
+        "width": 600,
+        "color": 2
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        544,
+        0
+      ],
+      "id": "941f57c3-7cf5-42a4-af72-0e6349a2e306",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openRouterApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"google/gemini-2.5-flash-image-preview:free\",\n  \"modalities\": [\"image\", \"text\"],\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": {{ JSON.stringify($json[\"output\"]) }}\n    }\n  ]\n}\n",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        640,
+        96
+      ],
+      "id": "128196cc-3d30-42f5-afa7-ef1cbeb2e39b",
+      "name": "HTTP Request",
+      "credentials": {
+        "openRouterApi": {
+          "id": "p7a9vA4HRZuItVPq",
+          "name": "OpenRouter account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0d3e1ea2-9386-47bf-8f8a-cce7f349dbe5",
+              "name": "=data",
+              "value": "={{$json[\"choices\"][0][\"message\"][\"images\"][0][\"image_url\"][\"url\"]}}",
+              "type": "string"
+            },
+            {
+              "id": "393caf3e-e367-4490-8ee3-28bfc83318b1",
+              "name": "=base",
+              "value": "={{$json[\"choices\"][0][\"message\"][\"images\"][0][\"image_url\"][\"url\"].split(\",\")[1]}}",
+              "type": "string"
+            },
+            {
+              "id": "f827ebfd-c7d3-48f1-8589-74965070f910",
+              "name": "mime",
+              "value": "={{$json[\"choices\"][0][\"message\"][\"images\"][0][\"image_url\"][\"url\"].match(/^data:([^;]+)/)[1]}}",
+              "type": "string"
+            },
+            {
+              "id": "7de58815-fa11-46ba-acb4-eb4563120218",
+              "name": "fileName",
+              "value": ".png",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        800,
+        96
+      ],
+      "id": "d68cc6cc-7b37-4bf0-a033-44dba2a2ad62",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json['User Input'] }}",
+        "options": {
+          "systemMessage": "=\n📌 Task:\nYou are an advanced AI specializing in transforming a short user-provided description into a hyper-realistic, cinematic first-image prompt. This single prompt is optimized for both text-to-image and text-to-video AI models such as Flux, MidJourney, Stable Diffusion, Runway Gen-3 Alpha, and Pika Labs.\n\nuser-provided description: {{ $json['User Input'] }}\n\nFINAL REMINDER:\n\n- Output MUST be less than 950 characters \n- Output MUST be one json:\n    { \"prompt\": \"Generated text output here...\" }\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        256,
+        96
+      ],
+      "id": "49613d79-f4c0-4100-8bfb-21a5e73102d8",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatMistralCloud",
+      "typeVersion": 1,
+      "position": [
+        256,
+        240
+      ],
+      "id": "31512b98-7124-4210-a231-4fbb6f101846",
+      "name": "Mistral Cloud Chat Model",
+      "credentials": {
+        "mistralCloudApi": {
+          "id": "BVW9PzvonWrmvF4Q",
+          "name": "Mistral Cloud account 2"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "n8n Form Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Convert to File1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mistral Cloud Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "88c1e220-851f-40d0-a3df-18cbec898c9c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7cac9a7a0a63812e41b1e94b1b69e3ffef7529633b7e9b913fb43b82dc581723"
+  },
+  "id": "fsJhSwA9UR4n1WvR",
+  "tags": []
+}
